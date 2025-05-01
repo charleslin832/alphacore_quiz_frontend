@@ -23,9 +23,17 @@ export const usePageStore = defineStore('pageStore', {
       console.log(' payload:', payload);
       let url = 'https://dev.tapgo.cc/test/orders';
       let data = {};
-      return axios.get(url, {params: data});
+      let _this = this;
+      return axios({
+        method: 'GET',
+        url: url,
+        responseType: 'json',
+        headers: {
+          Authorization: _this.tkn
+        },
+        params: data
+      })
     }
-
   }
 })
 

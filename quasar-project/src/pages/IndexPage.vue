@@ -37,6 +37,7 @@ function loginSubmit(){
     })
       .then(res => {
         if(res.status == 200){
+          pageStore.tkn = res.data.token;
           router.push('/table');
         }
       })

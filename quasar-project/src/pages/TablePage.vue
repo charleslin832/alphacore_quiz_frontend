@@ -3,27 +3,56 @@
     <q-table
       class="my-sticky-header-table"
       flat bordered
-      :rows="pageStore.listData"
+      :rows="rows"
       :columns="columns"
       row-key="name"
-    ></q-table>
+      v-model:pagination="pagination"
+    >
+      <template v-slot:top>
+        <q-pagination
+          v-model="pagination.page"
+          :max="maxPages"
+          @update:model-value="onPageChange"
+        />
+      </template>
+      <template v-slot:bottom>
+        <q-pagination
+          v-model="pagination.page"
+          :max="maxPages"
+          @update:model-value="onPageChange"
+        />
+      </template>
+  </q-table>
   </q-page>
 
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
 import {usePageStore} from '../stores/store.js';
+import { useRouter } from 'vue-router';
 
 let filterData = ref({});
 let pageStore = usePageStore();
-pageStore.showTableList(filterData)
-  .then(res => {
-    pageStore.listData = res.data.content;
-  })
-  .catch(error => {
-    console.log(error);
-  });
+const router = useRouter();
+// 無登入回導
+if(!pageStore.tkn){
+  router.push('/');
+};
+// pagination
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 10
+})
+
+const maxPages = computed(() => {
+  if(!rows.value) return 1;
+  return Math.ceil(rows.value.length / pagination.value.rowsPerPage)
+})
+function onPageChange(newPage) {
+  pagination.value.page = newPage;
+}
+// 資料
 const columns = [
   { name: 'Order', label: 'Order', field: 'order_name', sortable: true},
   { name: 'Customer', label: 'Customer', field: 'customer_name' },
@@ -35,4 +64,13 @@ const columns = [
   { name: 'Payment', label: 'Payment', field: 'financial_status'},
   { name: 'Fulfillment', label: 'Fulfillment', field: 'fulfillment_status'}
 ];
+const rows = ref([]);
+pageStore.showTableList(filterData)
+  .then(res => {
+    pageStore.listData = res.data.content;
+    rows.value = pageStore.listData;
+  })
+  .catch(error => {
+    console.log(error);
+  });
 </script>
