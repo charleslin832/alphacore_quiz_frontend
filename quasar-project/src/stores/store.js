@@ -11,7 +11,6 @@ export const usePageStore = defineStore('pageStore', {
 
   actions: {
     login(payload) {
-      // actinc
       let url = 'https://dev.tapgo.cc/test/auth/login';
       let data = {
         "password": payload.password,
@@ -20,9 +19,13 @@ export const usePageStore = defineStore('pageStore', {
       return axios.post(url, data);
     },
     showTableList(payload) {
-      console.log(' payload:', payload);
       let url = 'https://dev.tapgo.cc/test/orders';
       let data = {};
+      if (payload.value.delivery_date) data.delivery_date = payload.value.delivery_date;
+      if (payload.value.city.length !== 0) data.city = payload.value.city;
+      if (payload.value.order_status) data.order_status = payload.value.order_status;
+      if (payload.value.financial_status) data.financial_status = payload.value.financial_status;
+      if (payload.value.fulfillment_status) data.fulfillment_status = payload.value.fulfillment_status;
       let _this = this;
       return axios({
         method: 'GET',

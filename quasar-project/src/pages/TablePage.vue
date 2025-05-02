@@ -1,11 +1,20 @@
 <template>
   <q-page class="flex flex-center">
+    <div class="q-gutter-md row items-start">
+      <q-input v-model="filterData.delivery_date" stack-label type="date" label="delivery date" @update:model-value="showTable"/>
+      <q-select filled v-model="filterData.city" multiple :options="cityArray" label="city" style="width: 150px" @update:model-value="showTable()"/>
+      <q-select filled v-model="filterData.financial_status" :options="financialStatusArray" label="financial_status" style="width: 150px" @update:model-value="showTable()"/>
+      <q-select filled v-model="filterData.fulfillment_status" :options="fulfillmentStatusArray" label="fulfillment_status" style="width: 180px" @update:model-value="showTable()"/>
+      <q-select filled v-model="filterData.order_status" :options="orderStatusArray" label="order_status" style="width: 150px" @update:model-value="showTable()"/>
+    </div>
     <q-table
       class="my-sticky-header-table"
       flat bordered
       :rows="rows"
       :columns="columns"
       row-key="name"
+      selection="multiple"
+      v-model:selected="dataSelected"
       v-model:pagination="pagination"
     >
       <template v-slot:top>
@@ -28,17 +37,32 @@
 </template>
 
 <script setup>
-import { ref,computed } from 'vue';
+import { ref,computed, onMounted } from 'vue';
 import {usePageStore} from '../stores/store.js';
 import { useRouter } from 'vue-router';
+const cityArray = ['台北市', '新北市', '新竹市', '台南市', '高雄市'];
+const financialStatusArray = ['paid', 'pending', 'refunded'];
+const fulfillmentStatusArray = ['received', 'preparing'];
+const orderStatusArray = ['open', 'cancelled', 'closed'];
 
-let filterData = ref({});
+let filterData = ref({
+  delivery_date: '',
+  city: [],
+  order_status: '',
+  financial_status: '',
+  fulfillment_status: '',
+});
 let pageStore = usePageStore();
 const router = useRouter();
-// 無登入回導
-if(!pageStore.tkn){
-  router.push('/');
-};
+onMounted(() => {
+  // 無登入回導
+  if(!pageStore.tkn){
+    router.push('/');
+    return;
+  };
+  showTable();
+});
+
 // pagination
 const pagination = ref({
   page: 1,
@@ -52,7 +76,8 @@ const maxPages = computed(() => {
 function onPageChange(newPage) {
   pagination.value.page = newPage;
 }
-// 資料
+
+// 輸出
 const columns = [
   { name: 'Order', label: 'Order', field: 'order_name', sortable: true},
   { name: 'Customer', label: 'Customer', field: 'customer_name' },
@@ -65,12 +90,18 @@ const columns = [
   { name: 'Fulfillment', label: 'Fulfillment', field: 'fulfillment_status'}
 ];
 const rows = ref([]);
-pageStore.showTableList(filterData)
-  .then(res => {
-    pageStore.listData = res.data.content;
-    rows.value = pageStore.listData;
-  })
-  .catch(error => {
-    console.log(error);
-  });
+const dataSelected = ref([]);
+// API
+function showTable(){
+  console.log('SHOW');
+
+  pageStore.showTableList(filterData)
+    .then(res => {
+      pageStore.listData = res.data.content;
+      rows.value = pageStore.listData;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}
 </script>
